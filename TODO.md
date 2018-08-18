@@ -1,9 +1,13 @@
 Todo list:
- - add lots more nodes :)
- - add multiply (and other math) node(s) for real
- - add redistribute node to cut up a path at a new interval
- - add tangent/bitangent to extrude
- - add mirror node
- - add copy along path node
+ - add better menu for adding new nodes, maybe radial menu?
+ - add add node for real
+ - add subtract node for real
  - add subdivide node
-
+ - add random generation node
+ - better box node, maybe generate a surface and separate out faces
+ - add sphere node
+ - make generate normals work on a surface, have it calculate tangents and options like smooth?
+ - add a UV unwrap (maybe using the Thekla module in Godot?)
+ - add an input where we use another mesh as an input
+ - add an extract node that takes a surface as input and has each array as an output
+ - add boolean node to do CSG merge
