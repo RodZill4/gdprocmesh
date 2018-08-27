@@ -11,6 +11,10 @@ String GDProcExtrudeShape::get_type_name() {
 	return String("Extrude Shape");
 }
 
+String GDProcExtrudeShape::get_description() const {
+	return "Extrudes a 2D shape along a given path.\nEach slice will orientate itself along the slopes of the path.";
+}
+
 void GDProcExtrudeShape::_init() {
 	// first call super class
 	GDProcNode::_init();
@@ -206,11 +210,11 @@ bool GDProcExtrudeShape::update(bool p_inputs_updated, const Array &p_inputs) {
 					nw[curr_vertice] = xf.basis.xform(Vector3(point.x, point.y, point.z)).normalized();
 
 					// we should calculate our tangent, again do once and cache
-					Vector3 tangent = xf.basis.get_axis(2);
+					Vector3 tangent = xf.basis.get_axis(2).cross(nw[curr_vertice]).normalized();
 					tw[curr_tangent++] = tangent.x;
 					tw[curr_tangent++] = tangent.y;
 					tw[curr_tangent++] = tangent.z;
-					tw[curr_tangent++] = 1.0; /* -1.0 ? */
+					tw[curr_tangent++] = -1.0;
 
 					// calculate our uv
 					if (j > 0) {

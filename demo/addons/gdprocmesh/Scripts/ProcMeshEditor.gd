@@ -2,8 +2,8 @@ tool
 extends VBoxContainer
 
 var procmesh = null
-var add_button = null
 var add_popup = null
+var place = Vector2()
 var node_classes = Array()
 
 func _clear_graph():
@@ -24,18 +24,12 @@ func edit_mesh(p_procmesh):
 		hide()
 
 func _create_graph_node(p_node_id):
-	# should turn this into a scene to (pre)load...
-	
-	# print("Found node with id " + String(p_node_id))
 	var node = procmesh.get_node(p_node_id)
-	var slot_offset = 0
 	
 	# create a graph node for this
 	var gn = preload("res://addons/gdprocmesh/Scenes/ProcNodeEditor.tscn").instance()
 	gn.set_proc_node(procmesh, p_node_id)
 	gn.connect("changed", self, "_update_graph")
-	
-	slot_offset += 1
 	
 	return gn
 
@@ -64,19 +58,36 @@ func _add_node(p_type):
 	if new_node:
 		var id_to_use = procmesh.get_free_id()
 		
-		new_node.set_position(Vector2(10.0, 50.0) + $GraphEdit.scroll_offset)
+		new_node.set_position(place + $GraphEdit.scroll_offset)
 		procmesh.add_node(new_node, id_to_use)
 		
 		_update_graph();
 
 func _add_node_class(p_name, p_class):
-	add_popup.add_item(p_name)
+	var popup = add_popup
+	var names = p_name.split("/")
+	for i in range(names.size() - 1):
+		var i_name = names[i]
+		if not popup.has_node(i_name):
+			var new_popup = PopupMenu.new()
+			new_popup.name = i_name
+			new_popup.connect("id_pressed", self, "_add_node")
+			popup.add_child(new_popup)
+			popup.add_submenu_item(i_name, i_name)
+		popup = popup.get_node(i_name)
+	
 	node_classes.push_back(p_class)
+	popup.add_item(names[names.size() - 1], node_classes.size() - 1)
+	
 
 func _ready():
+	$GraphEdit.add_valid_connection_type(TYPE_REAL_ARRAY, TYPE_INT_ARRAY)
+	$GraphEdit.add_valid_connection_type(TYPE_INT_ARRAY, TYPE_REAL_ARRAY)
+	
 	# create our add node button
-	add_button = MenuButton.new()
+	var add_button = MenuButton.new()
 	add_button.text = "Add node..."
+	add_button.connect("pressed", self, "set", ["place", Vector2(10.0, 50.0)])
 	$GraphEdit.get_zoom_hbox().add_child(add_button)
 	$GraphEdit.get_zoom_hbox().move_child(add_button, 0)
 	
@@ -85,40 +96,47 @@ func _ready():
 	add_popup.connect("id_pressed", self, "_add_node")
 
 	# inputs
-	_add_node_class("Input Curve", "GDProcInCurve")
-	_add_node_class("Input Int", "GDProcInInt")
-	_add_node_class("Input Vectors", "GDProcInPoolVectors")
-	_add_node_class("Input Real", "GDProcInReal")
-	_add_node_class("Input Vector", "GDProcInVector")
+	_add_node_class("Inputs/Input Curve", "GDProcInCurve")
+	_add_node_class("Inputs/Input Int", "GDProcInInt")
+	_add_node_class("Inputs/Input Vectors", "GDProcInPoolVectors")
+	_add_node_class("Inputs/Input Real", "GDProcInReal")
+	_add_node_class("Inputs/Input Vector", "GDProcInVector")
 
 	# primitives
-	_add_node_class("Euler angles", "GDProcEuler")
-	_add_node_class("Vector", "GDProcVector")
+	_add_node_class("Primitives/Count", "GDProcCount")
+	_add_node_class("Primitives/Euler angles", "GDProcEuler")
+	_add_node_class("Primitives/Random", "GDProcRandom")
+	_add_node_class("Primitives/Split Vector", "GDProcSplitVector")
+	_add_node_class("Primitives/Vector", "GDProcVector")
+	_add_node_class("Primitives/Execute", "GDProcExec")
 
 	# transforms (work on primitives)
-	_add_node_class("Bevel", "GDProcBevel")
-	_add_node_class("Division", "GDProcDiv")
-	_add_node_class("Generate normals", "GDProcGenNormals")
-	_add_node_class("Redistribute", "GDProcRedist")
-	_add_node_class("Multiply", "GDProcMult")
-	_add_node_class("Rotate", "GDProcRotate")
-	_add_node_class("Scale", "GDProcScale")
-	_add_node_class("Translate", "GDProcTranslate")
+	_add_node_class("Transforms/Add", "GDProcAdd")
+	_add_node_class("Transforms/Bevel", "GDProcBevel")
+	_add_node_class("Transforms/Division", "GDProcDiv")
+	_add_node_class("Transforms/Generate normals", "GDProcGenNormals")
+	_add_node_class("Transforms/Redistribute", "GDProcRedist")
+	_add_node_class("Transforms/Multiply", "GDProcMult")
+	_add_node_class("Transforms/Rotate", "GDProcRotate")
+	_add_node_class("Transforms/Scale", "GDProcScale")
+	_add_node_class("Transforms/Subtract", "GDProcSub")
+	_add_node_class("Transforms/Translate", "GDProcTranslate")
 
 	# shapes
-	_add_node_class("Box", "GDProcBox")
-	_add_node_class("Circle", "GDProcCircle")
-	_add_node_class("Rectangle", "GDProcRect")
+	_add_node_class("Shapes/Box", "GDProcBox")
+	_add_node_class("Shapes/Circle", "GDProcCircle")
+	_add_node_class("Shapes/Line", "GDProcLine")
+	_add_node_class("Shapes/Rectangle", "GDProcRect")
 
 	# Surface
-	_add_node_class("Extrude Shape", "GDProcExtrudeShape")
-	_add_node_class("Surface", "GDProcSurface")
+	_add_node_class("Surfaces/Extrude Shape", "GDProcExtrudeShape")
+	_add_node_class("Surfaces/Surface", "GDProcSurface")
 
 	# modifiers (work on surfaces)
-	_add_node_class("Merge", "GDProcMerge")
-	_add_node_class("Mirror", "GDProcMirror")
-	_add_node_class("Place on path", "GDProcPlaceOnPath")
-	_add_node_class("Transform", "GDProcTransform")
+	_add_node_class("Modifiers/Merge", "GDProcMerge")
+	_add_node_class("Modifiers/Mirror", "GDProcMirror")
+	_add_node_class("Modifiers/Place on path", "GDProcPlaceOnPath")
+	_add_node_class("Modifiers/Transform", "GDProcTransform")
 
 	# output
 	_add_node_class("Output", "GDProcOutput")
@@ -140,10 +158,6 @@ func _on_GraphEdit_disconnection_request(from, from_slot, to, to_slot):
 
 	_update_graph();
 
-func _on_GraphEdit_connection_to_empty(from, from_slot, release_position):
-	var connections = procmesh.get_connection_list()
-	for c in connections:
-		if (String(c[2]) == from) and (c[3] == from_slot):
-			procmesh.remove_connection(c[0], c[1])
-
-	_update_graph();
+func _on_GraphEdit_popup_request(p_position):
+	place = get_local_mouse_position()
+	add_popup.popup(Rect2(p_position, Vector2(1, 1)))

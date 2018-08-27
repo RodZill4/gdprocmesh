@@ -9,7 +9,11 @@ void GDProcVector::_register_methods() {
 }
 
 String GDProcVector::get_type_name() {
-	return "Vectors";
+	return "Vector Combine";
+}
+
+String GDProcVector::get_description() const {
+	return "Helper node to combine 3 reals into one vec3.";
 }
 
 void GDProcVector::_init() {

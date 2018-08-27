@@ -9,9 +9,14 @@
 #include "input/gdprocinreal.h"
 #include "input/gdprocinvector.h"
 
+#include "primitives/gdproccount.h"
 #include "primitives/gdproceuler.h"
+#include "primitives/gdprocrandom.h"
 #include "primitives/gdprocvector.h"
+#include "primitives/gdprocexec.h"
+#include "primitives/gdprocsplitvector.h"
 
+#include "transforms/gdprocadd.h"
 #include "transforms/gdprocbevel.h"
 #include "transforms/gdprocdiv.h"
 #include "transforms/gdprocgennormals.h"
@@ -19,10 +24,12 @@
 #include "transforms/gdprocredist.h"
 #include "transforms/gdprocrotate.h"
 #include "transforms/gdprocscale.h"
+#include "transforms/gdprocsub.h"
 #include "transforms/gdproctranslate.h"
 
 #include "shapes/gdprocbox.h"
 #include "shapes/gdproccircle.h"
+#include "shapes/gdprocline.h"
 #include "shapes/gdprocrect.h"
 
 #include "surfaces/gdprocextrudeshape.h"
@@ -60,10 +67,15 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void *handle) {
 	godot::register_tool_class<godot::GDProcInVector>();
 
 	// primitives
+	godot::register_tool_class<godot::GDProcCount>();
 	godot::register_tool_class<godot::GDProcEuler>();
+	godot::register_tool_class<godot::GDProcRandom>();
 	godot::register_tool_class<godot::GDProcVector>();
+	godot::register_tool_class<godot::GDProcExec>();
+	godot::register_tool_class<godot::GDProcSplitVector>();
 
 	// transforms (work on primitives)
+	godot::register_tool_class<godot::GDProcAdd>();
 	godot::register_tool_class<godot::GDProcBevel>();
 	godot::register_tool_class<godot::GDProcDiv>();
 	godot::register_tool_class<godot::GDProcGenNormals>();
@@ -71,11 +83,13 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void *handle) {
 	godot::register_tool_class<godot::GDProcRedist>();
 	godot::register_tool_class<godot::GDProcRotate>();
 	godot::register_tool_class<godot::GDProcScale>();
+	godot::register_tool_class<godot::GDProcSub>();
 	godot::register_tool_class<godot::GDProcTranslate>();
 
 	// shapes
 	godot::register_tool_class<godot::GDProcBox>();
 	godot::register_tool_class<godot::GDProcCircle>();
+	godot::register_tool_class<godot::GDProcLine>();
 	godot::register_tool_class<godot::GDProcRect>();
 
 	// surfaces

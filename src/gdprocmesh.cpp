@@ -465,20 +465,8 @@ void GDProcMesh::_post_init() {
 		Ref<GDProcOutput> output;
 		output.instance();
 		output->set_name("Output");
-		output->set_position(Vector2(900.0, 50.0));
+		output->set_position(Vector2(600.0, 50.0));
 		int output_id = add_node(output);
-
-		// create our surface
-		Ref<GDProcSurface> surface;
-		surface.instance();
-		surface->set_position(Vector2(650.0, 50.0));
-		int surface_id = add_node(surface);
-
-		// create our generate normals entry
-		Ref<GDProcGenNormals> gen_normals;
-		gen_normals.instance();
-		gen_normals->set_position(Vector2(350.0, 50.0));
-		int gen_normals_id = add_node(gen_normals);
 
 		// create a box
 		Ref<GDProcBox> box;
@@ -487,12 +475,7 @@ void GDProcMesh::_post_init() {
 		int box_id = add_node(box);
 
 		// add our connections
-		add_connection(gen_normals_id, 0, box_id, 0); // vertices input to normals
-		add_connection(gen_normals_id, 1, box_id, 1); // indices input to normals
-		add_connection(surface_id, 0, box_id, 0); // vertices input to box
-		add_connection(surface_id, 1, gen_normals_id, 0); // normals input to box
-		add_connection(surface_id, 8, box_id, 1); // indices input to box
-		add_connection(output_id, 0, surface_id, 0); // bind to our output
+		add_connection(output_id, 0, box_id, 0); // bind to our output
 
 		// note that this will have trigger an update...
 	}
@@ -544,7 +527,41 @@ bool GDProcMesh::do_update_node(int p_id, Ref<GDProcNode> p_node) {
 						}
 
 						// and get our output
-						inputs.push_back(output_node->get_output(c.connector));
+						Variant output = output_node->get_output(c.connector);
+
+						// Do automatic conversions of outputs if necessary
+						Variant::Type output_type = output_node->get_output_connector_type(c.connector);
+						Variant::Type input_type = p_node->get_input_connector_type(i);
+						if (output_type == Variant::POOL_REAL_ARRAY && input_type == Variant::POOL_INT_ARRAY) {
+							PoolRealArray reals = output;
+							PoolRealArray::Read read = reals.read();
+							PoolIntArray integers;
+							integers.resize(reals.size());
+							PoolIntArray::Write write = integers.write();
+							for (int i_convert = 0; i_convert < reals.size(); i_convert++) {
+								write[i_convert] = (int)read[i_convert];
+							}
+							output = integers;
+						} else if (output_type == Variant::POOL_INT_ARRAY && input_type == Variant::POOL_REAL_ARRAY) {
+							PoolIntArray integers = output;
+							PoolIntArray::Read read = integers.read();
+							PoolRealArray reals;
+							reals.resize(integers.size());
+							PoolRealArray::Write write = reals.write();
+							for (int i_convert = 0; i_convert < integers.size(); i_convert++) {
+								write[i_convert] = (real_t)read[i_convert];
+							}
+							output = reals;
+						} else if (output_type != input_type) {
+							// In this case we have a problem
+							Godot::print_warning(String("Output type ({0}) and input type ({1}) do not match.\n"
+									"Error: Bad Connection - Node {2} : Connector {3} --> Node {4} : Connector {5}")
+									.format(Array::make(output_type, input_type, output_node->get_node_name(),
+									c.connector, p_node->get_node_name(), i)), __FUNCTION__, __FILE__, __LINE__);
+							output = Variant();
+						}
+
+						inputs.push_back(output);
 					}
 				}
 			}
